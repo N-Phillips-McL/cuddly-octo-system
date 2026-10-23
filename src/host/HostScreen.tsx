@@ -1,6 +1,6 @@
 import { ArrowRight, Check, Copy, MonitorPlay, Play, X } from 'lucide-react'
 import type { HostView } from '../api/quiz-contract'
-import { QuestionStage } from '../components/QuestionStage'
+import { RoundStage } from '../components/rounds/RoundStage'
 import type { HostAction } from '../hooks/use-host-session'
 
 interface HostScreenProps {
@@ -47,9 +47,7 @@ export function HostScreen({ view, joinUrl, busy, error, onAct, onAudience, onFi
   }
 
   const answered = game.players.filter((player) => player.answered).length
-  const question = game.question
-  const isLast = question !== null && question.number === question.count
-
+  const question = game.roundItem ?? null
   function confirmThen(message: string, action: HostAction, payload?: Record<string, unknown>) {
     if (window.confirm(message)) {
       void onAct(action, payload)
@@ -68,7 +66,7 @@ export function HostScreen({ view, joinUrl, busy, error, onAct, onAudience, onFi
             <span>BIG SCREEN PREVIEW</span>
             <span><i className="status-dot" /> {question ? `${question.number} / ${question.count}` : 'LOBBY'}</span>
           </div>
-          <QuestionStage question={question} phase={game.phase} joinCode={game.joinOpen ? game.joinCode : null}
+          <RoundStage item={question} phase={game.phase} joinCode={game.joinOpen ? game.joinCode : null}
             joinUrl={joinUrl} compact />
         </section>
         <aside className="host-console">
@@ -94,16 +92,26 @@ export function HostScreen({ view, joinUrl, busy, error, onAct, onAudience, onFi
                 <Play aria-hidden="true" size={17} fill="currentColor" /> Start the quiz
               </button>
             )}
-            {game.phase === 'question' && (
+            {game.phase === 'question' && question?.type === 'who-am-i' && question.clueNumber < 4 && (
+              <button className="button button--primary button--wide" type="button" disabled={busy}
+                onClick={() => void onAct('release-clue')}>
+                Release clue {question.clueNumber + 1} <ArrowRight aria-hidden="true" size={17} />
+              </button>
+            )}
+            {game.phase === 'question' && question?.type !== 'finale' && (question?.type !== 'who-am-i' || question.clueNumber === 4) && (
               <button className="button button--primary button--wide" type="button" disabled={busy}
                 onClick={() => void onAct('reveal')}>
-                Reveal answer <ArrowRight aria-hidden="true" size={17} />
+                {question?.type === 'connections' ? 'Reveal board' : question?.type === 'musical-matches' ? 'Reveal match' : 'Reveal answer'}
+                <ArrowRight aria-hidden="true" size={17} />
               </button>
+            )}
+            {game.phase === 'question' && question?.type === 'finale' && (
+              <p className="console-footnote">Finale advances automatically.</p>
             )}
             {game.phase === 'revealed' && (
               <button className="button button--primary button--wide" type="button" disabled={busy}
                 onClick={() => void onAct('next')}>
-                {isLast ? 'Finish the quiz' : 'Next question'} <ArrowRight aria-hidden="true" size={17} />
+                Next question <ArrowRight aria-hidden="true" size={17} />
               </button>
             )}
             {game.phase === 'finished' && (

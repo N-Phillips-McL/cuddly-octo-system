@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { callQuiz } from '../api/quiz-client'
-import { readJoinResponse, readPlayerView, type PlayerView } from '../api/quiz-contract'
+import { readJoinResponse, readPlayerView, type PlayerView, type RoundSubmission } from '../api/quiz-contract'
 import { classifyError } from './session-error'
 import { usePolling } from './use-polling'
 
@@ -24,7 +24,7 @@ export interface PlayerSession {
   error: string | null
   busy: boolean
   join: (code: string, displayName: string) => Promise<void>
-  answer: (answerId: string) => Promise<void>
+  answer: (submission: RoundSubmission) => Promise<void>
   leave: () => void
 }
 
@@ -105,14 +105,14 @@ export function usePlayerSession(): PlayerSession {
   }, [])
 
   const answer = useCallback(
-    async (answerId: string) => {
+    async (submission: RoundSubmission) => {
       if (!token) {
         return
       }
       setBusy(true)
       setError(null)
       try {
-        const next = readPlayerView(await callQuiz('answer', { answerId }, { playerToken: token }))
+        const next = readPlayerView(await callQuiz('answer', { submission }, { playerToken: token }))
         if (next) {
           setView(next)
         }

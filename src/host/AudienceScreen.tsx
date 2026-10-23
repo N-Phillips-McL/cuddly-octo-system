@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import type { HostView } from '../api/quiz-contract'
-import { QuestionStage } from '../components/QuestionStage'
+import { RoundStage } from '../components/rounds/RoundStage'
 
 interface AudienceScreenProps {
   view: HostView
@@ -10,14 +10,14 @@ interface AudienceScreenProps {
 
 export function AudienceScreen({ view, joinUrl, onBack }: AudienceScreenProps) {
   const game = view.game
-  const question = game?.question ?? null
+  const question = game?.roundItem ?? null
   return (
     <main className="audience-screen">
       <div className="audience-topline">
         <span>FINANCE WRAPPED / {view.summary.eventYear}</span>
         <span>{question ? `ROUND ${String(question.number).padStart(2, '0')} / ${question.count}` : 'LOBBY'}</span>
       </div>
-      <QuestionStage question={question} phase={game?.phase ?? 'ready'}
+      <RoundStage item={game?.roundItem ?? null} phase={game?.phase ?? 'ready'}
         joinCode={game?.joinOpen ? game.joinCode : null} joinUrl={joinUrl} />
       <footer className="audience-footer">
         <span>

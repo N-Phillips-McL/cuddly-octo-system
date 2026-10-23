@@ -9,12 +9,15 @@ import { usePolling } from './use-polling'
 export type HostAction =
   | 'open'
   | 'start'
+  | 'release-clue'
   | 'reveal'
   | 'next'
   | 'set-joining'
   | 'rotate-code'
   | 'remove-player'
   | 'end'
+
+const FINALE_POLL_INTERVAL_MS = 250
 
 export interface HostSession {
   configured: boolean
@@ -36,6 +39,7 @@ export function useHostSession(): HostSession {
   const [reconnecting, setReconnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const pollingIntervalMs = view?.game?.roundItem?.type === 'finale' ? FINALE_POLL_INTERVAL_MS : POLL_INTERVAL_MS
 
   useEffect(() => {
     if (!supabaseAuth) {
@@ -87,7 +91,7 @@ export function useHostSession(): HostSession {
         }
       }
     },
-    POLL_INTERVAL_MS,
+    pollingIntervalMs,
     accessToken !== null,
   )
 
